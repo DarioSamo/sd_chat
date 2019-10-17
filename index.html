@@ -1,0 +1,64 @@
+<html>
+  <body>
+    <h2>Chat</h2>
+    <div id="messages" style="overflow-y:scroll; height:300px;"></div>
+    <br/>
+    <form onsubmit="return sendMessage(this)">
+      <input type="text" id="username" placeholder="Nombre" >
+      <input type="text" id="message" placeholder="Escribe un mensaje...">
+      <input type="submit" value="Enviar">
+    </form>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      var offsetNTP = 0;
+      var messagesDiv = document.getElementById('messages');
+      var socket = io();
+      socket.on('welcome', (message) => {
+        messagesDiv.innerHTML = 'Connected to server!';
+        var now = new Date();
+        socket.emit('ntp', `${now.getTime()}`);
+      });
+
+      socket.on('ntp', (message) => {
+        var T4 = (new Date()).getTime();
+        var times = message.split(",");
+        var T1 = parseInt(times[0]);
+        var T2 = parseInt(times[1]);
+        var T3 = parseInt(times[2]);
+        offsetNTP = ((T2 - T1) + (T3 - T4)) / 2;
+        messagesDiv.innerHTML += `</br>Offset:${offsetNTP} ms`;
+      });
+
+      socket.on('message', (message) => {
+        parsed = JSON.parse(String(message));
+        var timestamp = new Date(parsed.timestamp + parsed.offset);
+        var datestring = timestamp.toLocaleDateString();
+        var timestring = timestamp.toLocaleTimeString();
+        var htmlMessage = `</br>[${datestring} ${timestring}] <strong>${parsed.from}</strong>: ${parsed.message}`;
+        messagesDiv.innerHTML += htmlMessage;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      });
+
+      function sendMessage(message) {
+        var username = document.getElementById("username").value;
+        var messageBox = document.getElementById("message");
+        var message = messageBox.value;
+        if ((username != '') && (message != '')) {
+          var now = new Date();
+          var serialized = JSON.stringify({
+            from:username,
+            to:'all',
+            message:message,
+            timestamp:now.getTime(),
+            offset:offsetNTP
+          });
+
+          socket.emit('message', serialized);
+          messageBox.value = '';
+        }
+        return false;
+      }
+    </script>
+  </body>
+</html>
+
