@@ -1,8 +1,8 @@
 Sistema de chat de arquitectura híbrida para Sistemas Distribuidos.
 
 ## Archivos
-* express.js: Server en express + WebSockets.
-* http.js: Server en http + WebSockets.
+* express.js: Server en Express + WebSockets.
+* http.js: Server en HTTP + WebSockets.
 * client.js: Cliente de chat. Compatible con ambas versiones del server.
 
 ## Puertos
