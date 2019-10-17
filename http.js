@@ -161,8 +161,6 @@ const startHTTPServer = async () => {
     }
   }, CLIENT_CHECK_INTERVAL_MSECS);
 
-  console.log(`Server running on port ${HTTP_PORT}.`);
-
   var io = require('socket.io')(server);
   io.on('connection', function(socket) {
     socket.on('message', (message) => {

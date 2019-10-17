@@ -142,11 +142,7 @@ const startHTTPServer = async () => {
       }
     }
   }, CLIENT_CHECK_INTERVAL_MSECS);
-
-  http.listen(HTTP_PORT);
-}
-
-function startWebSocketServer() {
+  
   io.on('connection', function(socket) {
     socket.on('message', (message) => {
       // Redirect message to UDP clients.
@@ -174,13 +170,14 @@ function startWebSocketServer() {
     sockets.push(socket);
     socket.emit('welcome');
   });
+
+  http.listen(HTTP_PORT);
 }
 
 const init = async () => {
   startNTPServer();
   startUDPBridge();
   startHTTPServer();
-  startWebSocketServer();
 };
 
 process.on('unhandledRejection', (err) => {
