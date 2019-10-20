@@ -56,10 +56,12 @@ function requestRegister(host, username, ip, port) {
   console.log('Registering with HTTP server...');
 
   // Register on the HTTP server with the correct username, IP and port.
+  // Encoding the username allows it to register with restricted characters correctly.
+  var usernameURI = encodeURIComponent(username);
   const options = {
     hostname: host,
     port: 8080,
-    path: `/register?username=${username}&ip=${ip}&port=${port}`,
+    path: `/register?username=${usernameURI}&ip=${ip}&port=${port}`,
     method: 'GET'
   };
 
