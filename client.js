@@ -160,6 +160,7 @@ const calculateOffsetNTP = (ip, port) => {
       throw err;
     });
 
+    console.log("Connecting to NTP server...");
     client.connect(port, ip, function() {
       console.log('Connected to NTP server. Sending current time...');
       var now = new Date();
@@ -192,7 +193,6 @@ const nextmessage = () => {
 
 // Main function.
 const main = async () => {
-  console.log("Retrieving reference time...");
   var ntpHostIp = await question('Enter the NTP host address (empty for 127.0.0.1): ', 'localhost');
   var ntpHostPort = await question(`Enter the NTP host port (empty for ${TCP_NTP_DEFAULT_PORT}): `, `${TCP_NTP_DEFAULT_PORT}`);
   var offset = await calculateOffsetNTP(ntpHostIp, ntpHostPort);
