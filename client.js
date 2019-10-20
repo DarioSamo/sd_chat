@@ -4,8 +4,8 @@ const http = require('http')
 const dgram = require('dgram');
 const net = require('net');
 
-// Default port for NTP over TCP.
-const TCP_NTP_DEFAULT_PORT = 8083;
+// NTP port over TCP.
+const TCP_NTP_PORT = 8083;
 
 // Global variables.
 var activeMembers = []
@@ -193,10 +193,8 @@ const nextmessage = () => {
 
 // Main function.
 const main = async () => {
-  var ntpHostIp = await question('Enter the NTP host address (empty for 127.0.0.1): ', 'localhost');
-  var ntpHostPort = await question(`Enter the NTP host port (empty for ${TCP_NTP_DEFAULT_PORT}): `, `${TCP_NTP_DEFAULT_PORT}`);
-  var offset = await calculateOffsetNTP(ntpHostIp, ntpHostPort);
-  var host = await question('Enter the HTTP host address (empty for localhost): ', 'localhost');
+  var host = await question('Enter the host address (empty for localhost): ', 'localhost');
+  var offset = await calculateOffsetNTP(host, TCP_NTP_PORT);
   var username = await question('Enter your username (empty for Unknown): ', 'Unknown');
   var ip = await question('Enter your address (empty for 127.0.0.1): ', '127.0.0.1');
   var port = await question('Enter your port (empty or 0 for auto-detect): ', '0');
