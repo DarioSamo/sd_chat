@@ -1,0 +1,23 @@
+{
+  "name": "sd_chat",
+  "version": "1.0.0",
+  "description": "Sistema de chat de arquitectura híbrida para Sistemas Distribuidos.",
+  "main": "express.js",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DarioSamo/sd_chat.git"
+  },
+  "author": "Dario",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DarioSamo/sd_chat/issues"
+  },
+  "homepage": "https://github.com/DarioSamo/sd_chat#readme"
+}

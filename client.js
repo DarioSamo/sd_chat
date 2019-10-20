@@ -4,9 +4,8 @@ const http = require('http')
 const dgram = require('dgram');
 const net = require('net');
 
-// IP and Port for NTP server.
-const TCP_NTP_IP = '127.0.0.1';
-const TCP_NTP_PORT = 8083;
+// Default port for NTP over TCP.
+const TCP_NTP_DEFAULT_PORT = 8083;
 
 // Global variables.
 var activeMembers = []
@@ -31,7 +30,7 @@ function sendMessage(from, to, message, timestamp, offset) {
     offset:offset
   });
 
-  for(let member of activeMembers) {
+  for (let member of activeMembers) {
     sendSocket.send(serialized, member.port, member.ip);
   }
 }
@@ -92,7 +91,7 @@ function requestRegister(host, username, ip, port) {
 const register = (host, username, ip, port) => {
   return new Promise((resolve, reject) => {
     listenSocket.on('error', (err) => {
-      console.log(`UDP Socket error:\n${err.stack}`);
+      console.error(`UDP Socket error:\n${err.stack}`);
     });
 
     listenSocket.on('message', (msg, rinfo) => {
@@ -138,64 +137,9 @@ const register = (host, username, ip, port) => {
   });
 }
 
-// Initial questions.
-const question1 = () => {
-  return new Promise((resolve, reject) => {
-    rl.question('Enter the host address (empty for localhost): ', (answer) => {
-      if (answer == '') {
-        answer = 'localhost';
-      }
-
-      resolve(answer);
-    })
-  });
-}
-
-const question2 = () => {
-  return new Promise((resolve, reject) => {
-    rl.question('Enter your username (empty for Unknown): ', (answer) => {
-      if (answer == '') {
-        answer = 'Unknown';
-      }
-
-      resolve(answer);
-    })
-  });
-}
-
-const question3 = () => {
-  return new Promise((resolve, reject) => {
-    rl.question('Enter your IP (empty for 127.0.0.1): ', (answer) => {
-      if (answer == '') {
-        answer = '127.0.0.1';
-      }
-
-      resolve(answer);
-    })
-  });
-}
-
-const question4 = () => {
-  return new Promise((resolve, reject) => {
-    rl.question('Enter your port (empty or 0 for auto-detect): ', (answer) => {
-      if (answer == '') {
-        answer = '0';
-      }
-
-      resolve(answer);
-    })
-  });
-}
-
-const nextmessage = () => {
-  return new Promise((resolve, reject) => {
-    rl.question('', (answer) => {
-      resolve(answer);
-    })
-  });
-}
-
-const calculateOffsetNTP = () => {
+// Calculates the offset between this system and the NTP system. Allows for 
+// synchronization across all clients.
+const calculateOffsetNTP = (ip, port) => {
   return new Promise((resolve, reject) => {
     var client = new net.Socket();
     client.on('data', function(data) {
@@ -216,7 +160,7 @@ const calculateOffsetNTP = () => {
       throw err;
     });
 
-    client.connect(TCP_NTP_PORT, TCP_NTP_IP, function() {
+    client.connect(port, ip, function() {
       console.log('Connected to NTP server. Sending current time...');
       var now = new Date();
       client.write(`${now.getTime()}`);
@@ -224,16 +168,41 @@ const calculateOffsetNTP = () => {
   });
 }
 
+// Ask a question to the user and use a default answer if they don't type in anything.
+const question = (questionText, defaultAnswerText) => {
+  return new Promise((resolve, reject) => {
+    rl.question(questionText, (answer) => {
+      if (answer == '') {
+        answer = defaultAnswerText;
+      }
+
+      resolve(answer);
+    })
+  });
+}
+
+// Read the next line typed in by the user.
+const nextmessage = () => {
+  return new Promise((resolve, reject) => {
+    rl.question('', (answer) => {
+      resolve(answer);
+    })
+  });
+}
+
 // Main function.
 const main = async () => {
   console.log("Retrieving reference time...");
-  var offset = await calculateOffsetNTP();
-  var host = await question1();
-  var username = await question2();
-  var ip = await question3();
-  var port = await question4();
+  var ntpHostIp = await question('Enter the NTP host address (empty for 127.0.0.1): ', 'localhost');
+  var ntpHostPort = await question(`Enter the NTP host port (empty for ${TCP_NTP_DEFAULT_PORT}): `, `${TCP_NTP_DEFAULT_PORT}`);
+  var offset = await calculateOffsetNTP(ntpHostIp, ntpHostPort);
+  var host = await question('Enter the HTTP host address (empty for localhost): ', 'localhost');
+  var username = await question('Enter your username (empty for Unknown): ', 'Unknown');
+  var ip = await question('Enter your address (empty for 127.0.0.1): ', '127.0.0.1');
+  var port = await question('Enter your port (empty or 0 for auto-detect): ', '0');
   await register(host, username, ip, port);
 
+  // Chatting message loop.
   var chatting = true;
   while (chatting) {
     var message = await nextmessage();
